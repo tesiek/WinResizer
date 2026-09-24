@@ -1,0 +1,38 @@
+<Window x:Class="WinResizer.Views.ProfileNameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Width="380"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        Foreground="{DynamicResource WindowForeground}">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <TextBlock x:Name="PromptText" Margin="0,0,0,8" />
+    <TextBox x:Name="ProfileNameTextBox"
+             Grid.Row="1"
+             MinWidth="320"
+             Margin="0,0,0,16"
+             Padding="6,4"
+             VerticalContentAlignment="Center" />
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+      <ui:Button Content="Cancel"
+                 IsCancel="True"
+                 Style="{StaticResource ToolbarButtonLayoutStyle}" />
+      <ui:Button Content="OK"
+                 Appearance="Primary"
+                 IsDefault="True"
+                 Margin="0"
+                 Style="{StaticResource ToolbarButtonLayoutStyle}"
+                 Click="Confirm_Click" />
+    </StackPanel>
+  </Grid>
+</Window>

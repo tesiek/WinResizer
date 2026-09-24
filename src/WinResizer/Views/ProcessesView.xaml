@@ -1,0 +1,46 @@
+<UserControl x:Class="WinResizer.Views.ProcessesView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:sorting="clr-namespace:WinResizer.Sorting" xmlns:p="clr-namespace:WinResizer.Presentation">
+  <Grid Style="{StaticResource PageRootGridStyle}"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <StackPanel Orientation="Horizontal" Style="{StaticResource PageToolbarStyle}">
+      <ui:Button x:Name="AddProcessButton" Content="Add" Appearance="Primary" Style="{StaticResource ToolbarButtonLayoutStyle}" Click="Add_Click"/>
+      <WrapPanel VerticalAlignment="Center" DataContext="{Binding ProfileOptions, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
+        <CheckBox Content="Resize By Title" IsChecked="{Binding ResizeByTitle, Mode=OneWay}" Tag="{x:Static p:ProfileOption.EnableResizeByTitle}" Click="Option_Click" Style="{StaticResource FooterCheckBoxLayoutStyle}" />
+        <CheckBox Content="Auto Resize Delay" IsChecked="{Binding AutoResizeDelay, Mode=OneWay}" Tag="{x:Static p:ProfileOption.EnableAutoResizeDelay}" Click="Option_Click" Style="{StaticResource FooterCheckBoxLayoutStyle}" />
+      </WrapPanel>
+    </StackPanel>
+    <ui:DataGrid x:Name="ProcessesGrid" Grid.Row="1" Style="{StaticResource PrototypeDataGridStyle}" ItemsSource="{Binding Processes}" PreparingCellForEdit="ProcessesGrid_PreparingCellForEdit" CellEditEnding="ProcessesGrid_CellEditEnding" RowEditEnding="ProcessesGrid_RowEditEnding"><ui:DataGrid.Columns>
+    <DataGridTemplateColumn Header="Process" SortMemberPath="Process" HeaderStyle="{StaticResource GridTextHeaderStyle}" sorting:NaturalDataGridSortBehavior.UseNaturalString="True" Width="*" MinWidth="120">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Process, Mode=OneWay}" Style="{StaticResource GridTextCellTextStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Process, Mode=OneWay}" Style="{StaticResource GridTextCellTextBoxStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Title" SortMemberPath="Title" HeaderStyle="{StaticResource GridTextHeaderStyle}" sorting:NaturalDataGridSortBehavior.UseNaturalString="True" Width="2*" MinWidth="190">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Title, Mode=OneWay}" Style="{StaticResource GridTextCellTextStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Title, Mode=OneWay}" Style="{StaticResource GridTextCellTextBoxStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Top" SortMemberPath="Top" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Top, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Top, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Left" SortMemberPath="Left" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Left, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Left, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Right" SortMemberPath="Right" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Right, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Right, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Bottom" SortMemberPath="Bottom" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="72" MinWidth="72">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Bottom, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Bottom, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Auto" SortMemberPath="Auto" IsReadOnly="True" HeaderStyle="{StaticResource GridBooleanHeaderStyle}" Width="64" MinWidth="64" CellStyle="{StaticResource GridCheckBoxCellLayoutStyle}">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding Auto, Mode=OneWay}" Click="Auto_Click" Style="{StaticResource GridCheckBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Delay" SortMemberPath="Delay" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="72" MinWidth="72">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Delay, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="ProcessEditor" Text="{Binding Delay, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn x:Name="RemoveProcessColumn" Header="" IsReadOnly="True" CanUserSort="False" Width="100" MinWidth="100" CellStyle="{StaticResource GridActionCellLayoutStyle}">
+      <DataGridTemplateColumn.CellTemplate><DataTemplate><ui:Button Content="Remove" Style="{StaticResource GridActionButtonLayoutStyle}" Click="Remove_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+    </DataGridTemplateColumn>
+  </ui:DataGrid.Columns></ui:DataGrid></Grid>
+</UserControl>

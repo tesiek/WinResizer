@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>WinResizer.Configuration</AssemblyName>
+        <RootNamespace>WinResizer.Configuration</RootNamespace>
+        <TargetFrameworks>net6.0-windows;netcoreapp3.1;net48;net47</TargetFrameworks>
+        <UseWindowsForms>true</UseWindowsForms>
+        <Nullable>enable</Nullable>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\WinResizer.Common\WinResizer.Common.csproj" />
+        <InternalsVisibleTo Include="WinResizer.Core" />
+    </ItemGroup>
+
+</Project>

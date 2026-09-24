@@ -1,0 +1,149 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+  <Thickness x:Key="PagePadding">20</Thickness>
+  <Thickness x:Key="ToolbarBottomMargin">0,0,0,12</Thickness>
+  <Thickness x:Key="GridCellPadding">10,0</Thickness>
+  <Thickness x:Key="GridHeaderPadding">10,0</Thickness>
+  <Thickness x:Key="GridActionButtonMargin">6,4</Thickness>
+  <Thickness x:Key="GridEditorMargin">6,4</Thickness>
+  <Thickness x:Key="ToolbarButtonMargin">0,0,8,0</Thickness>
+  <Thickness x:Key="FooterCheckBoxMargin">0,0,24,8</Thickness>
+  <Thickness x:Key="PageTitleMargin">0,0,0,8</Thickness>
+  <Thickness x:Key="StatusBarPadding">16,6</Thickness>
+
+  <Style x:Key="PageRootGridStyle" TargetType="{x:Type Grid}">
+    <Setter Property="Margin" Value="{StaticResource PagePadding}" />
+  </Style>
+
+  <Style x:Key="PageToolbarStyle" TargetType="{x:Type StackPanel}">
+    <Setter Property="Margin" Value="{StaticResource ToolbarBottomMargin}" />
+  </Style>
+
+  <Style x:Key="PageDescriptionStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="Margin" Value="{StaticResource ToolbarBottomMargin}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="PageTitleStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="Margin" Value="{StaticResource PageTitleMargin}" />
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style x:Key="SectionContainerStyle" TargetType="{x:Type Border}">
+    <Setter Property="Padding" Value="12" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+  </Style>
+
+  <Style x:Key="StatusBarStyle" TargetType="{x:Type Border}">
+    <Setter Property="Padding" Value="{StaticResource StatusBarPadding}" />
+    <Setter Property="Margin" Value="0,12,0,0" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+  </Style>
+
+  <Style x:Key="GridCellLayoutStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource {x:Type DataGridCell}}">
+    <Setter Property="Padding" Value="{StaticResource GridCellPadding}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Style.Triggers>
+      <Trigger Property="IsKeyboardFocusWithin" Value="True">
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+      </Trigger>
+      <Trigger Property="IsSelected" Value="True">
+        <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="GridActionCellLayoutStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource GridCellLayoutStyle}">
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style x:Key="GridEditorCellLayoutStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource GridCellLayoutStyle}">
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style x:Key="GridCheckBoxCellLayoutStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource GridCellLayoutStyle}">
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style x:Key="GridTextElementLayoutStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="TextAlignment" Value="Left" />
+  </Style>
+
+  <Style x:Key="GridTextCellTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource GridTextElementLayoutStyle}">
+    <Setter Property="Margin" Value="10,0" />
+  </Style>
+
+  <Style x:Key="GridNumericTextElementLayoutStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource GridTextElementLayoutStyle}">
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="GridTextBoxLayoutStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+    <Setter Property="Padding" Value="4,1" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="GridTextCellTextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource GridTextBoxLayoutStyle}">
+    <Setter Property="Margin" Value="10,0" />
+  </Style>
+
+  <Style x:Key="GridNumericTextBoxLayoutStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource GridTextBoxLayoutStyle}">
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="GridCheckBoxLayoutStyle" TargetType="{x:Type CheckBox}" BasedOn="{StaticResource {x:Type CheckBox}}">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="FooterCheckBoxLayoutStyle" TargetType="{x:Type CheckBox}" BasedOn="{StaticResource {x:Type CheckBox}}">
+    <Setter Property="Margin" Value="{StaticResource FooterCheckBoxMargin}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style x:Key="ToolbarButtonLayoutStyle" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="MinWidth" Value="76" />
+    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="Margin" Value="{StaticResource ToolbarButtonMargin}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Appearance" Value="Secondary" />
+  </Style>
+
+  <Style x:Key="GridActionButtonLayoutStyle" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="8,1" />
+    <Setter Property="Margin" Value="{StaticResource GridActionButtonMargin}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Appearance" Value="Secondary" />
+  </Style>
+
+  <Style x:Key="GridComboBoxLayoutStyle" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="MinWidth" Value="120" />
+    <Setter Property="Padding" Value="6,1" />
+    <Setter Property="Margin" Value="{StaticResource GridEditorMargin}" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+</ResourceDictionary>

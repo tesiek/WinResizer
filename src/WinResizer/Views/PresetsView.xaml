@@ -1,0 +1,39 @@
+<UserControl x:Class="WinResizer.Views.PresetsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:sorting="clr-namespace:WinResizer.Sorting">
+  <Grid Style="{StaticResource PageRootGridStyle}"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <StackPanel Orientation="Horizontal" Style="{StaticResource PageToolbarStyle}">
+      <ui:Button Content="New Preset" Appearance="Primary" Style="{StaticResource ToolbarButtonLayoutStyle}" Click="NewPreset_Click"/>
+      <ui:Button Content="Capture Window" Style="{StaticResource ToolbarButtonLayoutStyle}" Click="CaptureWindow_Click"/>
+    </StackPanel>
+    <ui:DataGrid x:Name="PresetsGrid" Grid.Row="1" Style="{StaticResource PrototypeDataGridStyle}" ItemsSource="{Binding Presets}" PreparingCellForEdit="PresetsGrid_PreparingCellForEdit" CellEditEnding="PresetsGrid_CellEditEnding" RowEditEnding="PresetsGrid_RowEditEnding"><ui:DataGrid.Columns>
+      <DataGridTemplateColumn Header="Active" HeaderStyle="{StaticResource GridBooleanHeaderStyle}" IsReadOnly="True" Width="72" MinWidth="72" CellStyle="{StaticResource GridCheckBoxCellLayoutStyle}">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate>
+          <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}" Style="{StaticResource GridCheckBoxLayoutStyle}" Click="Active_Click"/>
+        </DataTemplate></DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn x:Name="PresetNameColumn" SortMemberPath="Name" Header="Preset Name" HeaderStyle="{StaticResource GridTextHeaderStyle}" sorting:NaturalDataGridSortBehavior.UseNaturalString="True" Width="*" MinWidth="140">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Name, Mode=OneWay}" Style="{StaticResource GridTextCellTextStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+        <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="PresetEditor" Text="{Binding Name, Mode=OneWay}" Style="{StaticResource GridTextCellTextBoxStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn x:Name="TopColumn" SortMemberPath="Top" Header="Top" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Top, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+        <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="PresetEditor" Text="{Binding Top, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn x:Name="LeftColumn" SortMemberPath="Left" Header="Left" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Left, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+        <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="PresetEditor" Text="{Binding Left, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn x:Name="WidthColumn" SortMemberPath="Width" Header="Width" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Width, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+        <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="PresetEditor" Text="{Binding Width, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn x:Name="HeightColumn" SortMemberPath="Height" Header="Height" HeaderStyle="{StaticResource GridNumericHeaderStyle}" Width="64" MinWidth="64">
+        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Height, Mode=OneWay}" Style="{StaticResource GridNumericTextElementLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+        <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox x:Name="PresetEditor" Text="{Binding Height, Mode=OneWay}" Style="{StaticResource GridNumericTextBoxLayoutStyle}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTextColumn Header="Hotkey" HeaderStyle="{StaticResource GridTextHeaderStyle}" Binding="{Binding Hotkey, Mode=OneWay}" IsReadOnly="True" sorting:NaturalDataGridSortBehavior.UseNaturalString="True" ElementStyle="{StaticResource GridTextCellTextStyle}" Width="*" MinWidth="140"/>
+      <DataGridTemplateColumn Header="" IsReadOnly="True" Width="100" MinWidth="100" CellStyle="{StaticResource GridActionCellLayoutStyle}"><DataGridTemplateColumn.CellTemplate><DataTemplate><ui:Button Content="Set Key" Style="{StaticResource GridActionButtonLayoutStyle}" Click="SetKey_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+      <DataGridTemplateColumn Header="" IsReadOnly="True" Width="100" MinWidth="100" CellStyle="{StaticResource GridActionCellLayoutStyle}"><DataGridTemplateColumn.CellTemplate><DataTemplate><ui:Button Content="Capture" Style="{StaticResource GridActionButtonLayoutStyle}" Click="Capture_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+      <DataGridTemplateColumn Header="" IsReadOnly="True" Width="100" MinWidth="100" CellStyle="{StaticResource GridActionCellLayoutStyle}"><DataGridTemplateColumn.CellTemplate><DataTemplate><ui:Button Content="Remove" Style="{StaticResource GridActionButtonLayoutStyle}" Click="Remove_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+    </ui:DataGrid.Columns></ui:DataGrid>
+  </Grid>
+</UserControl>

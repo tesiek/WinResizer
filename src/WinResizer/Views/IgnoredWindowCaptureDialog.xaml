@@ -1,0 +1,73 @@
+<Window x:Class="WinResizer.Views.IgnoredWindowCaptureDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Capture Ignored Window" Width="840" Height="495" MinWidth="640" MinHeight="420"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        Foreground="{DynamicResource WindowForeground}">
+  <Window.Resources>
+    <!-- Dedicated scrollbar rows/columns reserve space rather than overlaying the list. -->
+    <ControlTemplate x:Key="CaptureScrollViewerTemplate" TargetType="{x:Type ScrollViewer}">
+      <Grid ClipToBounds="True">
+        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0"
+                                Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                CanContentScroll="{TemplateBinding CanContentScroll}" ClipToBounds="True"/>
+        <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.Column="1" Orientation="Vertical"
+                   Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}"
+                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                   Maximum="{TemplateBinding ScrollableHeight}" ViewportSize="{TemplateBinding ViewportHeight}"
+                   Value="{Binding VerticalOffset, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+        <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" Orientation="Horizontal"
+                   Height="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}"
+                   Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                   Maximum="{TemplateBinding ScrollableWidth}" ViewportSize="{TemplateBinding ViewportWidth}"
+                   Value="{Binding HorizontalOffset, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+      </Grid>
+    </ControlTemplate>
+  </Window.Resources>
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock Text="Select a window to create a global Ignored Windows rule."
+               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" TextWrapping="Wrap"/>
+    <ListBox x:Name="WindowList" Grid.Row="1" ItemsSource="{Binding Windows}"
+             SelectedItem="{Binding SelectedWindow, Mode=TwoWay}" SelectionMode="Single">
+      <ListBox.Template>
+        <ControlTemplate TargetType="{x:Type ListBox}">
+          <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1"
+                  Background="{DynamicResource ControlFillColorDefaultBrush}">
+            <ScrollViewer x:Name="CaptureListScrollViewer" CanContentScroll="True" Focusable="False"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          Template="{StaticResource CaptureScrollViewerTemplate}">
+              <ItemsPresenter/>
+            </ScrollViewer>
+          </Border>
+        </ControlTemplate>
+      </ListBox.Template>
+      <ListBox.ItemContainerStyle>
+        <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+          <Setter Property="HorizontalContentAlignment" Value="Left"/>
+          <Setter Property="Padding" Value="0"/>
+          <Setter Property="MinHeight" Value="0"/>
+        </Style>
+      </ListBox.ItemContainerStyle>
+      <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayText}" Margin="8,2"/></DataTemplate></ListBox.ItemTemplate>
+    </ListBox>
+    <StackPanel Grid.Row="2" Margin="0,14,0,8">
+      <TextBlock Text="{Binding Process}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+      <TextBlock Text="{Binding Class}" TextWrapping="Wrap"/>
+      <TextBlock Text="{Binding Title}" TextWrapping="Wrap"/>
+    </StackPanel>
+    <TextBlock Grid.Row="3" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+      <ui:Button Content="Cancel" IsCancel="True" Style="{StaticResource ToolbarButtonLayoutStyle}"/>
+      <ui:Button Content="Capture" IsDefault="True" Appearance="Primary" Margin="0"
+                 Style="{StaticResource ToolbarButtonLayoutStyle}" IsEnabled="{Binding CanCapture}" Click="Capture_Click"/>
+    </StackPanel>
+  </Grid>
+</Window>

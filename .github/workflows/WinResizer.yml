@@ -1,0 +1,50 @@
+name: WinResizer portable release
+
+on:
+  push:
+    tags:
+      - "1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore and build Release x64
+        shell: pwsh
+        run: |
+          dotnet restore .\WinResizer.sln -p:Configuration=Release -p:Platform=x64
+          if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
+          dotnet msbuild .\WinResizer.sln /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /v:minimal /clp:Summary
+          if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
+
+      - name: Package portable WinResizer
+        shell: pwsh
+        run: |
+          $publishFolder = Join-Path $env:GITHUB_WORKSPACE 'publish\WinResizer'
+          dotnet publish .\src\WinResizer\WinResizer.csproj -c Release -f net48 -o $publishFolder /p:Platform=x64 /p:PlatformTarget=x64 --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'WinResizer publish failed.' }
+          Copy-Item .\LICENSE (Join-Path $publishFolder 'LICENSE')
+          Copy-Item .\NOTICE.txt (Join-Path $publishFolder 'NOTICE.txt')
+          Get-ChildItem -LiteralPath $publishFolder -Filter '*.pdb' -File | Remove-Item
+          if (-not (Test-Path -LiteralPath (Join-Path $publishFolder 'WinResizer.exe'))) { throw 'WinResizer.exe is missing.' }
+          if (Get-ChildItem -LiteralPath $publishFolder -Recurse -File | Where-Object { $_.Name -eq 'WinResizer.config.json' -or $_.Extension -eq '.pdb' -or $_.Name -eq 'WinResizer.CLI.exe' }) { throw 'Unexpected file in portable output.' }
+          Compress-Archive -Path (Join-Path $publishFolder '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE 'WinResizer-portable-1.0.zip')
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: WinResizer 1.0
+          files: WinResizer-portable-1.0.zip
+          fail_on_unmatched_files: true

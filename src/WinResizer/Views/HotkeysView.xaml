@@ -1,0 +1,65 @@
+<UserControl x:Class="WinResizer.Views.HotkeysView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:sorting="clr-namespace:WinResizer.Sorting"
+             xmlns:p="clr-namespace:WinResizer.Presentation">
+  <Grid Style="{StaticResource PageRootGridStyle}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <TextBlock Text="Global keyboard shortcuts" Style="{StaticResource PageDescriptionStyle}" />
+    <Grid Grid.Row="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="2*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <ui:DataGrid x:Name="HotkeysGrid"
+                   Style="{StaticResource PrototypeDataGridStyle}"
+                   ItemsSource="{Binding Hotkeys}"
+                   Margin="0,0,0,12">
+        <ui:DataGrid.Columns>
+          <DataGridTextColumn Header="Action"
+                              HeaderStyle="{StaticResource GridTextHeaderStyle}"
+                              Binding="{Binding Action, Mode=OneWay}"
+                              sorting:NaturalDataGridSortBehavior.UseNaturalString="True"
+                              ElementStyle="{StaticResource GridTextCellTextStyle}"
+                              Width="*"
+                              MinWidth="190"
+                              IsReadOnly="True" />
+          <DataGridTextColumn Header="Current Key"
+                              HeaderStyle="{StaticResource GridTextHeaderStyle}"
+                              Binding="{Binding CurrentKey, Mode=OneWay}"
+                              sorting:NaturalDataGridSortBehavior.UseNaturalString="True"
+                              ElementStyle="{StaticResource GridTextCellTextStyle}"
+                              Width="*"
+                              MinWidth="190"
+                              IsReadOnly="True" />
+          <DataGridTemplateColumn Header=""
+                                  Width="88"
+                                  MinWidth="88"
+                                  CellStyle="{StaticResource GridActionCellLayoutStyle}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <ui:Button Content="Set Key"
+                           Style="{StaticResource GridActionButtonLayoutStyle}"
+                           Click="SetKey_Click" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </ui:DataGrid.Columns>
+      </ui:DataGrid>
+
+        <WrapPanel Grid.Row="1" VerticalAlignment="Bottom">
+          <CheckBox Content="Notify On Saved"
+                    IsChecked="{Binding NotifyOnSaved, Mode=OneWay}" Click="Option_Click" Tag="{x:Static p:ProfileOption.NotifyOnSaved}"
+                    Style="{StaticResource FooterCheckBoxLayoutStyle}" />
+          <CheckBox Content="Restore All: Include minimized" IsChecked="{Binding IncludeMinimized, Mode=OneWay}" Click="Option_Click" Tag="{x:Static p:ProfileOption.RestoreAllIncludeMinimized}" Style="{StaticResource FooterCheckBoxLayoutStyle}" />
+          <CheckBox Content="Disable Hotkeys in Full Screen" IsChecked="{Binding DisableInFullScreen, Mode=OneWay}" Click="Option_Click" Tag="{x:Static p:ProfileOption.DisableInFullScreen}" Style="{StaticResource FooterCheckBoxLayoutStyle}" />
+        </WrapPanel>
+    </Grid>
+  </Grid>
+</UserControl>

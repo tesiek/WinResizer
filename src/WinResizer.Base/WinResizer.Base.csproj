@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+    <PropertyGroup>
+        <AssemblyName>WinResizer.Base</AssemblyName>
+        <RootNamespace>WinResizer.Base</RootNamespace>
+        <TargetFrameworks>net6.0-windows;netcoreapp3.1;net48;net47</TargetFrameworks>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <Nullable>enable</Nullable>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\WinResizer.Common\WinResizer.Common.csproj" />
+        <ProjectReference Include="..\WinResizer.Configuration\WinResizer.Configuration.csproj" />
+        <ProjectReference Include="..\WinResizer.Core\WinResizer.Core.csproj" />
+    </ItemGroup>
+
+</Project>

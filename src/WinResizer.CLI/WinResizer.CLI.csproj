@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <AssemblyName>WinResizer.CLI</AssemblyName>
+        <RootNamespace>WinResizer.CLI</RootNamespace>
+        <TargetFramework>net472</TargetFramework>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+        <Version>1.0.0</Version>
+        <ProductName>WinResizer</ProductName>
+        <Authors>caoyue</Authors>
+        <Copyright>Copyright @ $(Authors) 2022</Copyright>
+        <RepositoryUrl>https://github.com/caoyue/WindowResizer</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Description>Quickly reset window position and size using shortcut keys</Description>
+        <ApplicationIcon>..\WinResizer\Resources\AppIcon-light.ico</ApplicationIcon>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Spectre.Console" Version="0.45.1-preview.0.41" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Properties" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\WinResizer.Base\WinResizer.Base.csproj" />
+    </ItemGroup>
+
+</Project>

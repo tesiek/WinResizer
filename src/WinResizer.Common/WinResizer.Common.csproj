@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>WinResizer.Common</AssemblyName>
+        <RootNamespace>WinResizer.Common</RootNamespace>
+        <TargetFrameworks>net6.0;netcoreapp3.1;net48;net47</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
+
+</Project>
