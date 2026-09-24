@@ -4,6 +4,12 @@ WinResizer is a portable Windows 10/11 x64 utility built with WPF and .NET Frame
 
 WinResizer is distributed as a portable application. Extract the release ZIP and run `WinResizer.exe` directly.
 
+![WinResizer](docs/images/Hotkeys.png)
+
+![WinResizer](docs/images/Processes.png)
+
+![WinResizer](docs/images/Ignored.png)
+
 ## Portable configuration
 
 On first run, the production application creates its configuration beside the executable:
