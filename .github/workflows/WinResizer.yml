@@ -3,7 +3,7 @@ name: WinResizer portable release
 on:
   push:
     tags:
-      - "1.0"
+      - "*.*.*"
 
 permissions:
   contents: write
@@ -32,6 +32,7 @@ jobs:
       - name: Package portable WinResizer
         shell: pwsh
         run: |
+          $tag = $env:GITHUB_REF_NAME
           $publishFolder = Join-Path $env:GITHUB_WORKSPACE 'publish\WinResizer'
           dotnet publish .\src\WinResizer\WinResizer.csproj -c Release -f net48 -o $publishFolder /p:Platform=x64 /p:PlatformTarget=x64 --nologo
           if ($LASTEXITCODE -ne 0) { throw 'WinResizer publish failed.' }
@@ -40,11 +41,11 @@ jobs:
           Get-ChildItem -LiteralPath $publishFolder -Filter '*.pdb' -File | Remove-Item
           if (-not (Test-Path -LiteralPath (Join-Path $publishFolder 'WinResizer.exe'))) { throw 'WinResizer.exe is missing.' }
           if (Get-ChildItem -LiteralPath $publishFolder -Recurse -File | Where-Object { $_.Name -eq 'WinResizer.config.json' -or $_.Extension -eq '.pdb' -or $_.Name -eq 'WinResizer.CLI.exe' }) { throw 'Unexpected file in portable output.' }
-          Compress-Archive -Path (Join-Path $publishFolder '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE 'WinResizer-portable-1.0.zip')
+          Compress-Archive -Path (Join-Path $publishFolder '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE "WinResizer-portable-${tag}.zip")
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: WinResizer 1.0
-          files: WinResizer-portable-1.0.zip
+          name: WinResizer ${{ github.ref_name }}
+          files: WinResizer-portable-${{ github.ref_name }}.zip
           fail_on_unmatched_files: true

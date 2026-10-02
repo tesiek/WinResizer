@@ -16,7 +16,11 @@ public partial class AboutView : UserControl
     {
         InitializeComponent();
         var version = typeof(AboutView).Assembly.GetName().Version;
-        AboutTitle.Text = $"WinResizer {version?.Major ?? 1}.{version?.Minor ?? 0}";
+        AboutTitle.Text = version is null
+            ? "WinResizer 1.0.1"
+            : version.Build > 0
+                ? $"WinResizer {version.Major}.{version.Minor}.{version.Build}"
+                : $"WinResizer {version.Major}.{version.Minor}";
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
