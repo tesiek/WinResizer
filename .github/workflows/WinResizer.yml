@@ -46,6 +46,13 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: WinResizer ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            ### What's changed
+
+            - Fixed an incorrect layout in the **Processes** tab after moving WinResizer between monitors with different DPI scaling while another tab was active.
+            - Improved the **Processes** toolbar layout for mixed-DPI multi-monitor configurations.
+          draft: false
+          prerelease: false
           files: WinResizer-portable-${{ github.ref_name }}.zip
           fail_on_unmatched_files: true
