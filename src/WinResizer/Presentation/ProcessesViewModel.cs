@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows.Data;
 using System.Windows.Threading;
 using WinResizer.Runtime;
@@ -17,6 +18,7 @@ public sealed class ProcessesViewModel : IDisposable
     private readonly Dispatcher _dispatcher;
     private bool _disposed;
     private bool _refreshQueued;
+    private int _profileRevision;
 
     public ProcessesViewModel(WinResizerRuntime runtime, Dispatcher dispatcher)
     {
@@ -47,6 +49,36 @@ public sealed class ProcessesViewModel : IDisposable
             Refresh();
             throw;
         }
+    }
+
+    internal (string ProfileId, int Revision) BeginCapture() =>
+        (_runtime.GetProfiles().Single(profile => profile.IsCurrent).Id, Volatile.Read(ref _profileRevision));
+
+    internal RuntimeProcessInfo AddCapturedProcess((string ProfileId, int Revision) context, CapturedWindow capture)
+    {
+        if (_disposed || context.Revision != Volatile.Read(ref _profileRevision) ||
+            !_runtime.GetProfiles().Any(profile => profile.IsCurrent && profile.Id == context.ProfileId))
+            throw new InvalidOperationException("The profiles changed while Capture Window was open. Please capture again.");
+
+        var process = capture.Window.ProcessModuleName;
+        if (string.IsNullOrWhiteSpace(process))
+            throw new ArgumentException("The selected window's executable module name could not be read.");
+        var geometry = capture.Geometry;
+        if (geometry.Width <= 0 || geometry.Height <= 0)
+            throw new ArgumentException("The selected window geometry is invalid.");
+        var title = _runtime.GetEnableResizeByTitle() && !string.IsNullOrEmpty(capture.Window.Title)
+            ? capture.Window.Title : "*";
+        var existing = _runtime.GetProcesses(context.ProfileId).FirstOrDefault(rule =>
+            rule.Process.Equals(process, StringComparison.OrdinalIgnoreCase) &&
+            rule.Title.Equals(title, StringComparison.Ordinal));
+        if (existing is not null) { Refresh(); return existing; }
+
+        try
+        {
+            var rect = geometry.PlacementRect;
+            return _runtime.AddProcess(context.ProfileId, process!, title, rect.Top, rect.Left, rect.Right, rect.Bottom);
+        }
+        catch { Refresh(); throw; }
     }
 
     public bool RemoveProcess(ProcessRowViewModel row)
@@ -135,6 +167,7 @@ public sealed class ProcessesViewModel : IDisposable
 
     private void OnProfilesChanged(object? sender, EventArgs e)
     {
+        Interlocked.Increment(ref _profileRevision);
         if (_disposed || _dispatcher.HasShutdownStarted || _dispatcher.HasShutdownFinished)
         {
             return;

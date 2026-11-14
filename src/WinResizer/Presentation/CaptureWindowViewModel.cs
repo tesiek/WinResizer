@@ -43,7 +43,7 @@ internal sealed class CaptureWindowViewModel : INotifyPropertyChanged
             if (ReferenceEquals(_selectedWindow, value)) return;
             _selectedWindow = value;
             Changed();
-            ReadSelected(out _);
+            ReadSelected(out _, out _);
         }
     }
 
@@ -58,16 +58,17 @@ internal sealed class CaptureWindowViewModel : INotifyPropertyChanged
     {
         result = null;
         // Never return a cached preview: revalidate and read at the user's final click.
-        if (!ReadSelected(out var geometry)) return false;
-        result = new CapturedWindow(_selectedWindow!, geometry);
+        if (!ReadSelected(out var geometry, out var current)) return false;
+        result = new CapturedWindow(current!, geometry);
         return true;
     }
 
-    private bool ReadSelected(out CaptureGeometry geometry)
+    private bool ReadSelected(out CaptureGeometry geometry, out CaptureWindowItem? current)
     {
         geometry = default;
+        current = null;
         _preview = null;
-        var success = _selectedWindow != null && _source.TryCapture(_selectedWindow, out geometry, out _status);
+        var success = _selectedWindow != null && _source.TryCapture(_selectedWindow, out geometry, out current, out _status);
         if (_selectedWindow is null) _status = "Select a window to preview its geometry.";
         if (success)
         {

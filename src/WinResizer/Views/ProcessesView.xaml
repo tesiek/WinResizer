@@ -2,6 +2,7 @@
   <Grid Style="{StaticResource PageRootGridStyle}"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <StackPanel Orientation="Horizontal" Style="{StaticResource PageToolbarStyle}">
       <ui:Button x:Name="AddProcessButton" Content="Add" Appearance="Primary" Style="{StaticResource ToolbarButtonLayoutStyle}" Click="Add_Click"/>
+      <ui:Button Content="Capture Window" Style="{StaticResource ToolbarButtonLayoutStyle}" Click="CaptureWindow_Click"/>
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DataContext="{Binding ProfileOptions, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
         <CheckBox Content="Resize By Title" IsChecked="{Binding ResizeByTitle, Mode=OneWay}" Tag="{x:Static p:ProfileOption.EnableResizeByTitle}" Click="Option_Click" Margin="0,0,24,0" VerticalAlignment="Center" />
         <CheckBox Content="Auto Resize Delay" IsChecked="{Binding AutoResizeDelay, Mode=OneWay}" Tag="{x:Static p:ProfileOption.EnableAutoResizeDelay}" Click="Option_Click" Margin="0,0,24,0" VerticalAlignment="Center" />

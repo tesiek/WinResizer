@@ -1,11 +1,13 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using WinResizer.Common.Exceptions;
 using WinResizer.Presentation;
 using WinResizer.Services;
+using WinResizer.Runtime;
 
 namespace WinResizer.Views;
 
@@ -37,6 +39,33 @@ public partial class ProcessesView : UserControl
     {
         if (ViewModel is null || !FinishEditing()) return;
         RunOperation(() => ViewModel.AddProcess(), () => { });
+    }
+
+    private void CaptureWindow_Click(object sender, RoutedEventArgs e)
+    {
+        var model = ViewModel;
+        if (model is null || !FinishEditing()) return;
+        RunOperation(() =>
+        {
+            var context = model.BeginCapture();
+            var dialog = new CaptureWindowDialog(new CaptureWindowSource(requireProcessModule: true))
+                { Owner = Window.GetWindow(this) };
+            if (dialog.ShowDialog() == true && dialog.Result is { } capture)
+                SelectProcess(model.AddCapturedProcess(context, capture));
+        }, () => { });
+    }
+
+    private void SelectProcess(RuntimeProcessInfo process)
+    {
+        // Reconciliation runs at DataBind priority; select by identity after it completes.
+        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+        {
+            var row = ViewModel?.Processes.FirstOrDefault(item => item.ProfileId == process.ProfileId &&
+                item.ProcessToken == process.ProcessToken);
+            if (row is null) return;
+            ProcessesGrid.SelectedItem = row;
+            ProcessesGrid.ScrollIntoView(row);
+        }));
     }
 
     private void Remove_Click(object sender, RoutedEventArgs e)

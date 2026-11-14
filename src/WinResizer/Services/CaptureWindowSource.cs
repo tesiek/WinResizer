@@ -11,37 +11,41 @@ namespace WinResizer.Services;
 
 internal sealed class CaptureWindowItem
 {
-    public CaptureWindowItem(IntPtr handle, uint processId, string processName, string title)
+    public CaptureWindowItem(IntPtr handle, uint processId, string processName, string title, string? processModuleName = null)
     {
         Handle = handle;
         ProcessId = processId;
         ProcessName = processName;
         Title = title;
+        ProcessModuleName = processModuleName;
     }
 
     public IntPtr Handle { get; }
     public uint ProcessId { get; }
     public string ProcessName { get; }
     public string Title { get; }
+    public string? ProcessModuleName { get; }
     public string DisplayText => $"[{ProcessName}] — {Title}";
 }
 
 internal interface ICaptureWindowSource
 {
     IReadOnlyList<CaptureWindowItem> GetWindows();
-    bool TryCapture(CaptureWindowItem window, out CaptureGeometry geometry, out string error);
+    bool TryCapture(CaptureWindowItem window, out CaptureGeometry geometry, out CaptureWindowItem? current, out string error);
 }
 
 internal sealed class CaptureWindowSource : ICaptureWindowSource
 {
     private readonly uint _ownProcessId = GetCurrentProcessId();
     private readonly Func<IntPtr> _getOwnMainWindowHandle;
+    private readonly bool _requireProcessModule;
 
-    public CaptureWindowSource() : this(GetOwnMainWindowHandle) { }
+    public CaptureWindowSource(bool requireProcessModule = false) : this(GetOwnMainWindowHandle, requireProcessModule) { }
 
-    internal CaptureWindowSource(Func<IntPtr> getOwnMainWindowHandle)
+    internal CaptureWindowSource(Func<IntPtr> getOwnMainWindowHandle, bool requireProcessModule = false)
     {
         _getOwnMainWindowHandle = getOwnMainWindowHandle;
+        _requireProcessModule = requireProcessModule;
     }
 
     public IReadOnlyList<CaptureWindowItem> GetWindows()
@@ -57,12 +61,14 @@ internal sealed class CaptureWindowSource : ICaptureWindowSource
         return windows;
     }
 
-    public bool TryCapture(CaptureWindowItem window, out CaptureGeometry geometry, out string error)
+    public bool TryCapture(CaptureWindowItem window, out CaptureGeometry geometry, out CaptureWindowItem? current, out string error)
     {
         geometry = default;
-        if (!TryGetItem(window.Handle, out var current) || current!.ProcessId != window.ProcessId)
+        current = null;
+        if (!Resizer.TryGetWindowProcessId(window.Handle, out var before) || before != window.ProcessId ||
+            !TryGetItem(window.Handle, out var fresh, _requireProcessModule) || fresh!.ProcessId != window.ProcessId)
         {
-            error = "The selected window was closed, replaced, or is no longer available for Capture.";
+            error = "The selected window was closed, replaced, or its metadata is no longer available for Capture.";
             return false;
         }
 
@@ -90,17 +96,18 @@ internal sealed class CaptureWindowSource : ICaptureWindowSource
         }
 
         error = string.Empty;
+        current = fresh;
         return true;
     }
 
-    private bool TryGetItem(IntPtr handle, out CaptureWindowItem? item)
+    private bool TryGetItem(IntPtr handle, out CaptureWindowItem? item, bool readProcessModule = false)
     {
-        try { return TryReadItem(handle, out item); }
+        try { return TryReadItem(handle, out item, readProcessModule); }
         catch (InvalidOperationException) { item = null; return false; }
         catch (Win32Exception) { item = null; return false; }
     }
 
-    private bool TryReadItem(IntPtr handle, out CaptureWindowItem? item)
+    private bool TryReadItem(IntPtr handle, out CaptureWindowItem? item, bool readProcessModule)
     {
         item = null;
         if (!Resizer.TryGetWindowProcessId(handle, out var processId) ||
@@ -117,7 +124,10 @@ internal sealed class CaptureWindowSource : ICaptureWindowSource
         if (string.IsNullOrWhiteSpace(title))
             return false;
 
-        item = new CaptureWindowItem(handle, processId, process.ProcessName, title);
+        // Presets needs only ProcessName; do not require MainModule access for that path.
+        var moduleName = readProcessModule ? process.MainModule?.ModuleName : null;
+        if (readProcessModule && string.IsNullOrWhiteSpace(moduleName)) return false;
+        item = new CaptureWindowItem(handle, processId, process.ProcessName, title, moduleName);
         return true;
     }
 
