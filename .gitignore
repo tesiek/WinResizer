@@ -9,7 +9,6 @@
 *.sln.DotSettings
 
 # Local project tools and portable configuration
-/tests/
 /PROJECT_CONTEXT.md
 WinResizer.config.json
 .env

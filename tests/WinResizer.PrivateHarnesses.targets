@@ -1,0 +1,8 @@
+<Project>
+  <!-- Test-only friend access when a private harness builds the current WPF source. -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'WinResizer'">
+    <InternalsVisibleTo Include="WpfCaptureHarness" />
+    <InternalsVisibleTo Include="IgnoredWindowsWpfReadOnlyHarness" />
+    <InternalsVisibleTo Include="Stage3LifetimeHarness" />
+  </ItemGroup>
+</Project>

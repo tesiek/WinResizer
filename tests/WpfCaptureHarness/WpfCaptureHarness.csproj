@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>Latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>../../src/WinResizer/app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/WinResizer/WinResizer.csproj"/></ItemGroup>
+</Project>
