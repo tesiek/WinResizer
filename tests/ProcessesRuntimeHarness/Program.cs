@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using WinResizer.Common.Windows;
@@ -33,8 +35,115 @@ internal static class Program
     private static object? Monitor(WinResizerRuntime runtime) => Private(runtime, "_windowEventHandler");
     private static AutoResizeCoordinator Coordinator(WinResizerRuntime runtime) =>
         (AutoResizeCoordinator)Private(runtime, "_autoResizeCoordinator")!;
-    private static long Generation(WinResizerRuntime runtime) => (long)Private(Coordinator(runtime), "_generation")!;
-    private static int Pending(WinResizerRuntime runtime) => ((IDictionary)Private(Coordinator(runtime), "_pending")!).Count;
+    private static long Generation(WinResizerRuntime runtime)
+    {
+        var coordinator = Coordinator(runtime);
+        lock (Private(coordinator, "_pendingSync")!)
+            return (long)Private(coordinator, "_generation")!;
+    }
+
+    private static void WaitUntil(Func<bool> condition, string message)
+    {
+        var timer = Stopwatch.StartNew();
+        while (!condition() && timer.ElapsedMilliseconds < 10000)
+        {
+            Application.DoEvents();
+            Thread.Sleep(10);
+        }
+        Assert(condition(), message);
+    }
+
+    // Exercise the real coordinator/delay, but control its two existing snapshot reads.
+    // ExecutionContext identifies our explicit Schedule; desktop UIA events cannot
+    // consume the gates, and their transient pending entries are not our operation.
+    private sealed class ControlledPending : IDisposable
+    {
+        private static readonly AsyncLocal<ControlledPending?> Scheduled = new();
+        private readonly TaskCompletionSource<AutoResizeConfigurationSnapshot?> _initial = new();
+        private readonly TaskCompletionSource<bool> _releaseInitial = new();
+        private readonly TaskCompletionSource<long> _afterDelay = new();
+        private readonly TaskCompletionSource<bool> _releaseFinal = new();
+        private readonly Stopwatch _delayClock = new();
+        private readonly ConcurrentQueue<string> _errors = new();
+        private readonly AutoResizeCoordinator _coordinator;
+        private readonly object _sync;
+        private readonly IDictionary _pending;
+        private readonly object _operation;
+        private readonly CancellationToken _cancellation;
+        private int _reads;
+
+        public ControlledPending(WinResizerRuntime runtime, IntPtr handle, string process)
+        {
+            Coordinator(runtime).Dispose();
+            _coordinator = new AutoResizeCoordinator(() =>
+            {
+                if (!ReferenceEquals(Scheduled.Value, this)) return null;
+                if (Interlocked.Increment(ref _reads) == 1)
+                {
+                    var snapshot = runtime.CurrentAutoResizeSnapshot;
+                    _initial.SetResult(snapshot);
+                    AwaitGate(_releaseInitial);
+                    _delayClock.Start();
+                    return snapshot;
+                }
+                _afterDelay.SetResult(_delayClock.ElapsedMilliseconds);
+                AwaitGate(_releaseFinal);
+                return runtime.CurrentAutoResizeSnapshot;
+            }, _errors.Enqueue);
+            _sync = Private(_coordinator, "_pendingSync")!;
+            _pending = (IDictionary)Private(_coordinator, "_pending")!;
+            lock (_sync)
+            {
+                typeof(WinResizerRuntime).GetField("_autoResizeCoordinator", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(runtime, _coordinator);
+                Scheduled.Value = this;
+                try { _coordinator.Schedule(handle); }
+                finally { Scheduled.Value = null; }
+                Assert(_pending.Count == 1, "Explicit Schedule did not synchronously enqueue exactly one operation.");
+                _operation = _pending.Values.Cast<object>().Single();
+                _cancellation = ((CancellationTokenSource)_operation.GetType().GetProperty("Cancellation")!
+                    .GetValue(_operation)!).Token;
+            }
+            try
+            {
+                WaitUntil(() => _initial.Task.IsCompleted, "Worker did not capture its initial snapshot.");
+                var snapshot = _initial.Task.Result!;
+                Assert(snapshot.EnableAutoResizeDelay &&
+                    AutoResizeDelaySettings.GetProcessDelay(snapshot.WindowSizes, process) == 1200,
+                    "Initial snapshot did not capture the original 1200 ms delay.");
+            }
+            catch { Dispose(); throw; }
+        }
+
+        public bool IsPending
+        {
+            get { lock (_sync) return _pending.Values.Cast<object>().Any(value => ReferenceEquals(value, _operation)); }
+        }
+        public bool IsCancelled => _cancellation.IsCancellationRequested;
+        public void ReleaseInitial() => _releaseInitial.TrySetResult(true);
+        public void WaitForDelay()
+        {
+            WaitUntil(() => _afterDelay.Task.IsCompleted, "Worker did not reach the post-delay snapshot read.");
+            // Task.Delay uses the Windows timer resolution; allow one timer tick.
+            Assert(_afterDelay.Task.Result >= 1180, "Editing Delay shortened the original 1200 ms wait.");
+        }
+        public void Complete()
+        {
+            _releaseFinal.TrySetResult(true);
+            WaitUntil(() => !IsPending, "The captured operation did not finish.");
+            Assert(_errors.IsEmpty, "Coordinator failed instead of completing: " + string.Join("; ", _errors));
+        }
+        public void Dispose()
+        {
+            _coordinator.Dispose();
+            _releaseInitial.TrySetResult(true);
+            _releaseFinal.TrySetResult(true);
+        }
+        private static void AwaitGate(TaskCompletionSource<bool> gate)
+        {
+            if (!gate.Task.Wait(10000)) throw new TimeoutException("Test did not release the snapshot gate.");
+        }
+    }
 
     private static void Pump(int milliseconds)
     {
@@ -242,57 +351,65 @@ internal static class Program
             Pump(100);
             Assert(Resizer.GetPlacement(window.Handle).Rect.Left == originalRect.Left,
                 "Auto ON resized an already-open window.");
-            Coordinator(runtime).Schedule(window.Handle);
-            Pump(150);
-            var generationBeforeEdit = Generation(runtime);
-            Assert(Pending(runtime) == 1, "Test did not start one pending operation.");
-            window.Text = "fresh title after delay";
-            runtime.UpdateProcessTitle(a.ProfileId, real.ProcessToken, window.Text);
-            runtime.UpdateProcessLeft(a.ProfileId, real.ProcessToken, 460);
-            runtime.SetProcessDelay(a.ProfileId, real.ProcessToken, 0);
-            ConfigFactory.Save();
-            Assert(Generation(runtime) == generationBeforeEdit && Pending(runtime) == 1,
-                "Ordinary Update/Delay/Save cancelled pending.");
-            Pump(200);
-            Assert(Resizer.GetPlacement(window.Handle).Rect.Left == originalRect.Left,
-                "Editing Delay restarted/shortened the old wait.");
-            Pump(1100);
-            Assert(Resizer.GetPlacement(window.Handle, true).Rect.Left == 460 && Pending(runtime) == 0,
-                "Pending did not use fresh snapshot/Title/geometry after its original wait.");
+            using (var pending = new ControlledPending(runtime, window.Handle, realProcess))
+            {
+                var generationBeforeEdit = Generation(runtime);
+                Assert(pending.IsPending, "Test did not start one pending operation.");
+                window.Text = "fresh title after delay";
+                runtime.UpdateProcessTitle(a.ProfileId, real.ProcessToken, window.Text);
+                runtime.UpdateProcessLeft(a.ProfileId, real.ProcessToken, 460);
+                runtime.SetProcessDelay(a.ProfileId, real.ProcessToken, 0);
+                ConfigFactory.Save();
+                Assert(Generation(runtime) == generationBeforeEdit && pending.IsPending && !pending.IsCancelled,
+                    "Ordinary Update/Delay/Save cancelled or replaced pending.");
+                Assert(Resizer.GetPlacement(window.Handle).Rect.Left == originalRect.Left,
+                    "Editing Delay resized before the captured wait.");
+                pending.ReleaseInitial();
+                pending.WaitForDelay();
+                pending.Complete();
+                Assert(Resizer.GetPlacement(window.Handle, true).Rect.Left == 460 && !pending.IsPending,
+                    "Pending did not use fresh snapshot/Title/geometry after its original wait.");
+            }
 
             runtime.SetProcessDelay(a.ProfileId, real.ProcessToken, 1200);
-            Coordinator(runtime).Schedule(window.Handle);
-            Pump(150);
-            var generationBeforeOff = Generation(runtime);
-            var rectBeforeOff = Resizer.GetPlacement(window.Handle).Rect;
-            runtime.SetProcessAutoResize(a.ProfileId, real.ProcessToken, false);
-            Assert(Monitor(runtime) is null && Pending(runtime) == 1 && Generation(runtime) == generationBeforeOff,
-                "Last Auto OFF cancelled pending instead of only stopping monitoring.");
-            Pump(1300);
-            Assert(Pending(runtime) == 0 && Resizer.GetPlacement(window.Handle).Rect.Left == rectBeforeOff.Left,
-                "Pending resized through a disabled rule or did not clean up.");
+            runtime.UpdateProcessLeft(a.ProfileId, real.ProcessToken, 520);
+            using (var pending = new ControlledPending(runtime, window.Handle, realProcess))
+            {
+                var generationBeforeOff = Generation(runtime);
+                var rectBeforeOff = Resizer.GetPlacement(window.Handle).Rect;
+                runtime.SetProcessAutoResize(a.ProfileId, real.ProcessToken, false);
+                Assert(Monitor(runtime) is null && pending.IsPending && !pending.IsCancelled && Generation(runtime) == generationBeforeOff,
+                    "Last Auto OFF cancelled pending instead of only stopping monitoring.");
+                pending.ReleaseInitial();
+                pending.WaitForDelay();
+                pending.Complete();
+                Assert(!pending.IsPending && Resizer.GetPlacement(window.Handle).Rect.Left == rectBeforeOff.Left,
+                    "Pending resized through a disabled rule or did not clean up.");
+            }
             runtime.SetProcessAutoResize(a.ProfileId, real.ProcessToken, true);
-            Coordinator(runtime).Schedule(window.Handle);
-            Pump(150);
-            var generationBeforeSwitch = Generation(runtime);
-            runtime.SwitchProfile(b.ProfileId);
-            runtime.SwitchProfile(a.ProfileId);
-            Assert(Generation(runtime) == generationBeforeSwitch + 2 && Pending(runtime) == 0,
-                "A-B-A did not cancel old pending work.");
+            using (var pending = new ControlledPending(runtime, window.Handle, realProcess))
+            {
+                var generationBeforeSwitch = Generation(runtime);
+                runtime.SwitchProfile(b.ProfileId);
+                runtime.SwitchProfile(a.ProfileId);
+                Assert(Generation(runtime) == generationBeforeSwitch + 2 && !pending.IsPending && pending.IsCancelled,
+                    "A-B-A did not cancel old pending work.");
+            }
             Assert(Find(runtime, a.ProfileId, real.ProcessToken).ProcessToken == real.ProcessToken,
                 "Profile switch invalidated a surviving rule token.");
 
-            Coordinator(runtime).Schedule(window.Handle);
-            Pump(150);
-            var importPath = Path.Combine(directory, "same-id-import.json");
-            File.WriteAllText(importPath, JsonConvert.SerializeObject(ConfigFactory.Profiles));
-            var generationBeforeImport = Generation(runtime);
-            var eventsBeforeImport = events;
-            ConfigFactory.Load(importPath);
-            Assert(ConfigFactory.Current.ProfileId == a.ProfileId && events == eventsBeforeImport + 1,
-                "Same-ID import did not publish exactly one ProcessesChanged.");
-            Assert(Generation(runtime) == generationBeforeImport + 1 && Pending(runtime) == 0,
-                "Import did not invalidate pending work.");
+            using (var pending = new ControlledPending(runtime, window.Handle, realProcess))
+            {
+                var importPath = Path.Combine(directory, "same-id-import.json");
+                File.WriteAllText(importPath, JsonConvert.SerializeObject(ConfigFactory.Profiles));
+                var generationBeforeImport = Generation(runtime);
+                var eventsBeforeImport = events;
+                ConfigFactory.Load(importPath);
+                Assert(ConfigFactory.Current.ProfileId == a.ProfileId && events == eventsBeforeImport + 1,
+                    "Same-ID import did not publish exactly one ProcessesChanged.");
+                Assert(Generation(runtime) == generationBeforeImport + 1 && !pending.IsPending && pending.IsCancelled,
+                    "Import did not invalidate pending work.");
+            }
             validationEvents = events;
             Expect<ArgumentException>(() => runtime.UpdateProcessTitle(a.ProfileId, token, "stale imported token"));
             Expect<ArgumentException>(() => runtime.SetProcessAutoResize(a.ProfileId, real.ProcessToken, false));
