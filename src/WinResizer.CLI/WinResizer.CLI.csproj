@@ -8,7 +8,7 @@
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
         <PlatformTarget>x64</PlatformTarget>
         <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-        <Version>1.0.1</Version>
+        <Version>1.1.0</Version>
         <ProductName>WinResizer</ProductName>
         <Authors>caoyue</Authors>
         <Copyright>Copyright @ $(Authors) 2022</Copyright>

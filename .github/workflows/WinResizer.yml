@@ -50,8 +50,10 @@ jobs:
           body: |
             ### What's changed
 
-            - Fixed an incorrect layout in the **Processes** tab after moving WinResizer between monitors with different DPI scaling while another tab was active.
-            - Improved the **Processes** toolbar layout for mixed-DPI multi-monitor configurations.
+            - Added **Capture Window** to the **Processes** tab.
+            - Open windows can now be added directly to Processes together with their current position and size.
+            - Captured entries automatically use the correct executable name and integrate with existing process/title matching and Auto Resize.
+            - Added duplicate detection when capturing an existing process/window rule.
           draft: false
           prerelease: false
           files: WinResizer-portable-${{ github.ref_name }}.zip

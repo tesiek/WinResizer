@@ -7,6 +7,7 @@ It supports multi-monitor setups with different DPI scaling levels, reusable pre
 ## Features
 
 - Save and restore window position and size
+- Capture existing windows directly into Processes with their current position and size
 - Automatic resizing of matching windows
 - Multi-monitor and mixed-DPI support
 - Reusable window presets
@@ -32,6 +33,8 @@ It supports multi-monitor setups with different DPI scaling levels, reusable pre
 4. Enable **Auto Resize** to automatically restore the saved position and size when the matching window appears.
 5. Assign a global hotkey if you want to apply the saved position and size manually.
 6. Use the **Ignored** tab to exclude specific windows from automatic resizing, for example application dialogs or popup windows.
+
+In **Processes**, use **Capture Window** to create an entry from an open window with its current position and size.
 
 ### Window matching
 
